@@ -1,69 +1,197 @@
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================================
+// 用户账户（认证核心）
+// ============================================================
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ideas     Idea[]
-  projects  Project[]
-  dailyLogs DailyLog[]
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  avatarUrl     String?
+  passwordHash  String?                          // 邮箱登录密码哈希
+  plan          String    @default("free")       // free / pro
+  githubToken   String?   @db.Text              // 用于拉取 Commit 记录
+  dayStreak     Int       @default(0)            // 连续创业天数（Dashboard 展示）
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  ideas         Idea[]
+  projects      Project[]
+  dailyLogs     DailyLog[]
+  activities    UserActivity[]
 }
 
+// NextAuth.js 标准表
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================
+// 模块一：创意碎纸机 (Idea Validator)
+// ============================================================
 model Idea {
-  id          String   @id @default(cuid())
-  title       String
-  description String   @db.Text
-  canvasData  Json?    // Business Canvas data
-  score       Int?     // VC Score
-  status      String   @default("pending") // pending, approved, rejected
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  project     Project?
+  id             String   @id @default(cuid())
+  title          String                            // 一句话描述
+  description    String?  @db.Text                // 详细描述
+
+  // 商业画布字段（立项前强制填写）
+  canvasTarget   String?  @db.Text                // 目标用户
+  canvasPain     String?  @db.Text                // 用户痛点
+  canvasMvp      String?  @db.Text                // MVP 最小功能
+  canvasRevenue  String?  @db.Text                // 变现模式
+
+  // AI 调研结果
+  marketReport   String?  @db.LongText            // AI 生成的市场调研报告 Markdown
+  vcScore        Int?                              // 毒舌 VC 评分 0-100
+  vcComment      String?  @db.Text                // 毒舌 VC 评语
+
+  // 状态
+  status         String   @default("pending")     // pending / approved / rejected
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project        Project?
 }
 
+// ============================================================
+// 模块二：MVP 倒计时锁 (Time-Boxer)
+// ============================================================
 model Project {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  repoUrl     String?
-  deadline    DateTime?
-  mvpFeatures Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  ideaId      String   @unique
-  idea        Idea     @relation(fields: [ideaId], references: [id])
+  description String?   @db.Text
+  repoUrl     String?                              // GitHub 仓库地址
+  liveUrl     String?                              // 上线后的产品链接
+  deadline    DateTime?                            // MVP 截止日期
+  launchDate  DateTime?                            // 实际发布日期
+
+  // 任务清单（AI 削减后的 MVP 核心功能）
+  tasks       Json?                                // [{text, completed, essential}]
+
+  // 状态
+  status      String    @default("active")         // active / launched / abandoned
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  ideaId      String    @unique
+  idea        Idea      @relation(fields: [ideaId], references: [id])
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   metrics     ProductMetrics[]
 }
 
+// ============================================================
+// 模块三：每日复盘 Agent (Daily Standup)
+// ============================================================
 model DailyLog {
-  id               String   @id @default(cuid())
-  date             DateTime @default(now())
-  questionsAnswers Json?    // Q&A
-  commitLogs       String?  @db.Text
-  summary          String?  @db.Text
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  userId           String
-  user             User     @relation(fields: [userId], references: [id])
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+
+  // 灵魂六问答案
+  q1          String?  @db.Text   // 今天进账了吗？
+  q2          String?  @db.Text   // 做了什么推广动作？
+  q3          String?  @db.Text   // 代码的商业价值是什么？
+  q4          String?  @db.Text   // 哪件事离赚钱最近？
+  q5          String?  @db.Text   // 遇到了什么卡点？
+  q6          String?  @db.Text   // 明天如何带来收入？
+
+  // Git 数据
+  commitLogs  String?  @db.Text   // 当日 Commit Message 列表
+
+  // AI 生成
+  aiReportMd  String?  @db.LongText  // AI 生成的完整日报 Markdown
+
+  // 分享状态
+  sharedTo    String?              // 已发布平台：twitter,xiaohongshu
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])         // 每个用户每天只有一条复盘记录
 }
 
+// ============================================================
+// 模块四：矩阵数据（产品指标快照）
+// ============================================================
 model ProductMetrics {
   id        String   @id @default(cuid())
   date      DateTime @default(now())
-  dau       Int      @default(0)
-  revenue   Float    @default(0.0)
-  cost      Float    @default(0.0)
+  dau       Int      @default(0)      // 日活用户数
+  mrr       Float    @default(0.0)    // 月经常性收入
+  revenue   Float    @default(0.0)    // 当日收入
+  cost      Float    @default(0.0)    // 当日成本
+  ltv       Float    @default(0.0)    // 用户生命周期价值
+
+  // Relations
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
+}
+
+// ============================================================
+// 用户操作日志（每日复盘 Agent 数据源之一）
+// ============================================================
+model UserActivity {
+  id          String   @id @default(cuid())
+  actionType  String                              // create_idea / validate_idea / create_project / launch / daily_log
+  description String?  @db.Text
+  metadata    Json?                               // 额外数据（如 ideaId, projectId 等）
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

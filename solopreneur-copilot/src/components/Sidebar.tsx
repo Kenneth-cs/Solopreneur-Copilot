@@ -1,7 +1,8 @@
 'use client'
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
 import {
   LayoutDashboard,
   Lightbulb,
@@ -9,48 +10,41 @@ import {
   ListTodo,
   BarChart2,
   Settings,
-  User,
   Zap,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+  LogOut,
+  User,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const navItems = [
-  {
-    name: "仪表盘",
-    path: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "创意验证器",
-    path: "/idea-validator",
-    icon: Lightbulb,
-  },
-  {
-    name: "每日复盘",
-    path: "/daily",
-    icon: History,
-  },
-  {
-    name: "项目管理",
-    path: "/project-management",
-    icon: ListTodo,
-  },
-  {
-    name: "营销看板",
-    path: "/marketing",
-    icon: BarChart2,
-  },
-];
+  { name: "仪表盘", path: "/", icon: LayoutDashboard },
+  { name: "创意验证器", path: "/idea-validator", icon: Lightbulb },
+  { name: "每日复盘", path: "/daily", icon: History },
+  { name: "项目管理", path: "/project-management", icon: ListTodo },
+  { name: "营销看板", path: "/marketing", icon: BarChart2 },
+]
 
 export function Sidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname()
+  const router = useRouter()
+  const { data: session } = useSession()
+
+  const user = session?.user
+  const initials = user?.name
+    ? user.name.slice(0, 2).toUpperCase()
+    : user?.email?.slice(0, 2).toUpperCase() ?? "???"
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false })
+    router.push("/login")
+  }
 
   return (
     <div className="flex h-screen w-64 flex-col bg-[#101922] border-r border-slate-800 text-slate-300">
       {/* Logo Section */}
       <div className="flex items-center gap-3 px-6 py-8">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 shadow-lg">
-          <User className="h-6 w-6 text-slate-200" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#137FEC] to-blue-700 shadow-lg shadow-blue-500/20">
+          <Zap className="h-6 w-6 text-white" />
         </div>
         <div className="flex flex-col">
           <span className="text-lg font-bold text-white">超级个体</span>
@@ -59,7 +53,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-2 px-4">
+      <nav className="flex-1 space-y-1 px-4">
         {navItems.map((item) => (
           <Link
             key={item.path}
@@ -83,7 +77,9 @@ export function Sidebar() {
         <div className="relative overflow-hidden rounded-xl border border-slate-700 bg-gradient-to-b from-[#25303B] to-[#1C2630] p-4">
           <div className="mb-2 flex items-center gap-2">
             <Zap className="h-4 w-4 text-[#137FEC]" />
-            <span className="text-xs font-bold text-[#137FEC]">Pro 计划</span>
+            <span className="text-xs font-bold text-[#137FEC]">
+              {session?.user ? "Free 计划" : "Pro 计划"}
+            </span>
           </div>
           <p className="mb-3 text-xs text-slate-400">
             解锁更多 AI 验证次数与高级分析报表。
@@ -94,17 +90,34 @@ export function Sidebar() {
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800 transition-colors cursor-pointer">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white">
-            USER
+        <div className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800 transition-colors group">
+          {user?.image ? (
+            <img
+              src={user.image}
+              alt={user.name ?? "avatar"}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#137FEC]/20 text-xs font-bold text-[#137FEC]">
+              {initials}
+            </div>
+          )}
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <span className="truncate text-xs font-medium text-white">
+              {user?.name ?? user?.email ?? "未登录"}
+            </span>
+            <span className="text-[10px] text-slate-500">Free Plan</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-medium text-white">IndieHacker_01</span>
-            <span className="text-xs text-slate-500">Free Plan</span>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Link href="/settings">
+              <Settings className="h-4 w-4 text-slate-500 hover:text-white transition-colors" />
+            </Link>
+            <button onClick={handleSignOut} title="退出登录">
+              <LogOut className="h-4 w-4 text-slate-500 hover:text-red-400 transition-colors" />
+            </button>
           </div>
-          <Settings className="ml-auto h-4 w-4 text-slate-500 hover:text-white" />
         </div>
       </div>
     </div>
-  );
+  )
 }
