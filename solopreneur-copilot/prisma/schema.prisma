@@ -84,6 +84,8 @@ model Idea {
   marketReport   String?  @db.LongText            // AI 生成的市场调研报告 Markdown
   vcScore        Int?                              // 毒舌 VC 评分 0-100
   vcComment      String?  @db.Text                // 毒舌 VC 评语
+  vcStrengths    Json?                             // 优势列表 string[]
+  vcWeaknesses   Json?                             // 劣势列表 string[]
 
   // 状态
   status         String   @default("pending")     // pending / approved / rejected

@@ -38,6 +38,13 @@ interface HistoryLog {
   createdAt: string;
   aiReportMd: string | null;
   q1: string | null;
+  q2: string | null;
+  q3: string | null;
+  q4: string | null;
+  q5: string | null;
+  q6: string | null;
+  q7: string | null;
+  q8: string | null;
 }
 
 const now = () =>
@@ -90,6 +97,7 @@ export default function DailyReview() {
   const [showHistory, setShowHistory] = useState(false);
   const [historyLogs, setHistoryLogs] = useState<HistoryLog[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -233,7 +241,7 @@ export default function DailyReview() {
               <MessageSquare className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">灵魂六问</h2>
+              <h2 className="text-lg font-bold text-white">灵魂八问</h2>
               <p className="text-xs text-slate-500">{today}</p>
             </div>
           </div>
@@ -281,7 +289,7 @@ export default function DailyReview() {
               <div className="text-center">
                 <h3 className="text-xl font-bold text-white mb-2">每日灵魂拷问</h3>
                 <p className="text-slate-400 text-sm max-w-xs">
-                  AI 教练将通过 6 个问题帮你复盘今天的创业进展，最终生成专属日报。
+                  AI 教练将通过 8 个问题帮你复盘今天的创业进展，最终生成专属日报。
                 </p>
               </div>
               <button
@@ -374,7 +382,7 @@ export default function DailyReview() {
           {isComplete ? (
             <div className="flex items-center justify-center gap-2 rounded-xl border border-green-500/20 bg-green-500/5 py-4 text-sm text-green-400">
               <CheckCircle2 className="h-4 w-4" />
-              六问全部完成！查看右侧日报预览
+              八问全部完成！查看右侧日报预览
             </div>
           ) : (
             <div className="relative rounded-xl border border-slate-700 bg-[#1A232E] focus-within:border-[#137FEC]/50 transition-colors">
@@ -461,7 +469,7 @@ export default function DailyReview() {
               <FileText className="h-7 w-7 text-slate-500" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-400">完成六问后自动生成</p>
+              <p className="text-sm font-medium text-slate-400">完成八问后自动生成</p>
               <p className="mt-1 text-xs text-slate-600">
                 {questionCount === 0
                   ? "还没有开始复盘"
@@ -528,30 +536,87 @@ export default function DailyReview() {
                     <p className="text-sm text-slate-500">还没有复盘记录</p>
                   </div>
                 ) : (
-                  historyLogs.map((log) => (
-                    <div
-                      key={log.id}
-                      className="rounded-xl border border-slate-800 bg-[#1A232E] p-4 hover:border-slate-700 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-slate-400">
-                          {new Date(log.createdAt).toLocaleDateString("zh-CN", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </span>
-                        {log.aiReportMd ? (
-                          <span className="rounded bg-green-500/10 px-1.5 py-0.5 text-[10px] text-green-500">已完成</span>
-                        ) : (
-                          <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400">草稿</span>
-                        )}
+                  historyLogs.map((log) => {
+                    const isOpen = expandedLogId === log.id;
+                    const answers = [
+                      { q: "哪件事离赚钱最近？", a: log.q1 },
+                      { q: "今天赚钱了吗？", a: log.q2 },
+                      { q: "核心输出的商业价值？", a: log.q3 },
+                      { q: "遇到了什么卡点？", a: log.q4 },
+                      { q: "精力状态如何？", a: log.q5 },
+                      { q: "明天最重要的一件事？", a: log.q6 },
+                      { q: "如果今天重来会改变什么？", a: log.q7 },
+                      { q: "明天如何带来收入？", a: log.q8 },
+                    ].filter(item => item.a);
+                    return (
+                      <div key={log.id} className="rounded-xl border border-slate-800 bg-[#1A232E] overflow-hidden transition-colors hover:border-slate-700">
+                        {/* 卡片头部 - 点击展开/收起 */}
+                        <button
+                          className="flex w-full items-center justify-between p-4 text-left"
+                          onClick={() => setExpandedLogId(isOpen ? null : log.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={cn("h-2 w-2 rounded-full shrink-0", log.aiReportMd ? "bg-green-500" : "bg-slate-600")} />
+                            <span className="text-sm font-medium text-white">
+                              {new Date(log.createdAt).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {log.aiReportMd
+                              ? <span className="rounded bg-green-500/10 px-1.5 py-0.5 text-[10px] text-green-500">已完成</span>
+                              : <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400">草稿</span>}
+                            <span className={cn("text-slate-500 transition-transform duration-200", isOpen && "rotate-180")}>▾</span>
+                          </div>
+                        </button>
+
+                        {/* 展开内容 */}
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="border-t border-slate-800 p-4 space-y-4">
+                                {/* AI 日报（优先展示） */}
+                                {log.aiReportMd && (
+                                  <div className="rounded-lg bg-slate-900/50 p-4 max-h-64 overflow-y-auto">
+                                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#137FEC]">AI 日报</p>
+                                    <SimpleMarkdown content={log.aiReportMd} />
+                                  </div>
+                                )}
+
+                                {/* 八问答案 */}
+                                {answers.length > 0 && (
+                                  <div className="space-y-2">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">灵魂八问回顾</p>
+                                    {answers.map(({ q, a }, i) => (
+                                      <div key={i} className="rounded-lg border border-slate-700/50 bg-slate-900/30 p-3">
+                                        <p className="mb-1 text-[10px] text-slate-500">{q}</p>
+                                        <p className="text-xs text-slate-300 line-clamp-3">{a}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* 复制按钮 */}
+                                {log.aiReportMd && (
+                                  <button
+                                    onClick={() => { navigator.clipboard.writeText(log.aiReportMd!); toast.success("日报已复制"); }}
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700 py-2 text-xs text-slate-400 hover:bg-slate-800 transition-colors"
+                                  >
+                                    <Copy className="h-3 w-3" /> 复制此份日报
+                                  </button>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
-                      {log.q1 && (
-                        <p className="text-xs text-slate-500 truncate">今日收入：{log.q1}</p>
-                      )}
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </motion.div>

@@ -38,6 +38,8 @@ export async function POST(
       data: {
         vcScore: result.score,
         vcComment: result.comment,
+        vcStrengths: result.strengths ?? [],
+        vcWeaknesses: result.weaknesses ?? [],
         status,
       },
     })

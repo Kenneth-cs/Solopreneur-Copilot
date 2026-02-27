@@ -23,6 +23,8 @@ interface Idea {
   canvasRevenue: string | null
   vcScore: number | null
   vcComment: string | null
+  vcStrengths: string[] | null
+  vcWeaknesses: string[] | null
   status: string
   createdAt: string
 }
@@ -95,8 +97,8 @@ export default function IdeaValidator() {
 
   const handleViewIdea = (idea: Idea) => {
     setCurrentIdea(idea)
-    setStrengths([])
-    setWeaknesses([])
+    setStrengths(idea.vcStrengths ?? [])
+    setWeaknesses(idea.vcWeaknesses ?? [])
     setStep("result")
   }
 
@@ -122,10 +124,15 @@ export default function IdeaValidator() {
       if (!validateRes.ok) throw new Error("AI 评分失败")
       const validated = await validateRes.json()
 
-      setCurrentIdea(validated)
+      const validatedWithArrays = {
+        ...validated,
+        vcStrengths: validated.strengths ?? [],
+        vcWeaknesses: validated.weaknesses ?? [],
+      }
+      setCurrentIdea(validatedWithArrays)
       setStrengths(validated.strengths ?? [])
       setWeaknesses(validated.weaknesses ?? [])
-      setIdeas(prev => prev.map(i => i.id === validated.id ? validated : i))
+      setIdeas(prev => prev.map(i => i.id === validated.id ? validatedWithArrays : i))
       setStep("result")
       toast.success("AI 评分完成！")
     } catch (err) {
