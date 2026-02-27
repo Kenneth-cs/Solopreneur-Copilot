@@ -325,7 +325,7 @@ export default function SettingsPage() {
 
           <div className="rounded-xl border border-slate-700/50 bg-slate-800/20 divide-y divide-slate-800">
             {[
-              { label: "账号 ID", value: user?.id?.slice(0, 16) + "..." ?? "–" },
+              { label: "账号 ID", value: user?.id ? user.id.slice(0, 16) + "..." : "–" },
               { label: "注册邮箱", value: user?.email ?? "–" },
               { label: "加入时间", value: joinDate },
               { label: "连续复盘", value: `${user?.dayStreak ?? 0} 天` },
