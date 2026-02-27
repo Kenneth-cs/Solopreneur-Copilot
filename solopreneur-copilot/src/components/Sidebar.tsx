@@ -107,7 +107,7 @@ export function Sidebar() {
               {user?.name ?? user?.email ?? "未登录"}
             </span>
             <span className="text-[10px] text-slate-500">
-              {session?.user?.plan === "pro" ? "Pro Plan" : "Free Plan"}
+              {session?.user?.plan === "pro" ? "Pro 计划" : "免费计划"}
             </span>
           </div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

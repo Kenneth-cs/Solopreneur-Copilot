@@ -208,7 +208,7 @@ export default function Dashboard() {
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#137FEC]/20 group-hover:scale-110 transition-transform duration-300">
                   <Zap className="h-8 w-8 text-[#137FEC]" />
                 </div>
-                <p className="text-sm font-medium text-slate-400">AI Project Visualization</p>
+                <p className="text-sm font-medium text-slate-400">AI 项目可视化</p>
               </div>
             </div>
           </div>

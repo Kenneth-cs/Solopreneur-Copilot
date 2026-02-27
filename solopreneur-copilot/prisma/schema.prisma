@@ -118,9 +118,9 @@ model Project {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  // Relations
-  ideaId      String    @unique
-  idea        Idea      @relation(fields: [ideaId], references: [id])
+  // Relations（ideaId 可选，支持直接新建项目）
+  ideaId      String?   @unique
+  idea        Idea?     @relation(fields: [ideaId], references: [id])
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   metrics     ProductMetrics[]

@@ -32,60 +32,60 @@ import { motion } from "framer-motion";
 
 const products = [
   {
-    name: "AI Writer Pro",
-    version: "v3.1.2 • stable",
-    status: "Live",
+    name: "AI 写作助手",
+    version: "v3.1.2 • 稳定版",
+    status: "上线",
     users: "12,400",
-    mrr: "$4,200",
-    ltv: "$120",
+    mrr: "¥4,200",
+    ltv: "¥120",
     icon: "bg-gradient-to-br from-purple-500 to-indigo-500",
     initial: "AI",
   },
   {
-    name: "Code Snippet X",
-    version: "v1.0.4 • beta",
-    status: "Beta",
+    name: "代码片段 X",
+    version: "v1.0.4 • 测试版",
+    status: "测试",
     users: "3,100",
-    mrr: "$800",
-    ltv: "$45",
+    mrr: "¥800",
+    ltv: "¥45",
     icon: "bg-gradient-to-br from-blue-500 to-cyan-500",
     initial: "CS",
   },
   {
-    name: "Design Assets Hub",
-    version: "v2.2.0 • legacy",
-    status: "Live",
+    name: "设计资产中心",
+    version: "v2.2.0 • 旧版",
+    status: "上线",
     users: "8,200",
-    mrr: "$3,100",
-    ltv: "$95",
+    mrr: "¥3,100",
+    ltv: "¥95",
     icon: "bg-gradient-to-br from-pink-500 to-rose-500",
     initial: "DA",
   },
   {
-    name: "Solo CRM",
-    version: "v0.9.1 • patch",
-    status: "Maint.",
+    name: "个人 CRM",
+    version: "v0.9.1 • 补丁版",
+    status: "维护",
     users: "1,500",
-    mrr: "$450",
-    ltv: "$30",
+    mrr: "¥450",
+    ltv: "¥30",
     icon: "bg-gradient-to-br from-orange-500 to-amber-500",
     initial: "SC",
   },
 ];
 
 const chartData12M = [
-  { name: "Jan", revenue: 4000, cost: 2400 },
-  { name: "Feb", revenue: 3000, cost: 1398 },
-  { name: "Mar", revenue: 2000, cost: 9800 },
-  { name: "Apr", revenue: 2780, cost: 3908 },
-  { name: "May", revenue: 1890, cost: 4800 },
-  { name: "Jun", revenue: 2390, cost: 3800 },
-  { name: "Jul", revenue: 3490, cost: 4300 },
-  { name: "Aug", revenue: 4000, cost: 2400 },
-  { name: "Sep", revenue: 3000, cost: 1398 },
-  { name: "Oct", revenue: 2000, cost: 9800 },
-  { name: "Nov", revenue: 2780, cost: 3908 },
-  { name: "Dec", revenue: 1890, cost: 4800 },
+  { name: "1月", revenue: 4000, cost: 2400 },
+  { name: "2月", revenue: 3000, cost: 1398 },
+  { name: "3月", revenue: 2000, cost: 9800 },
+  { name: "4月", revenue: 2780, cost: 3908 },
+  { name: "5月", revenue: 1890, cost: 4800 },
+  { name: "6月", revenue: 2390, cost: 3800 },
+  { name: "7月", revenue: 3490, cost: 4300 },
+  { name: "8月", revenue: 4000, cost: 2400 },
+  { name: "9月", revenue: 3000, cost: 1398 },
+  { name: "10月", revenue: 2000, cost: 9800 },
+  { name: "11月", revenue: 2780, cost: 3908 },
+  { name: "12月", revenue: 1890, cost: 4800 },
 ];
 
 const chartData30D = Array.from({ length: 30 }, (_, i) => ({
@@ -95,7 +95,7 @@ const chartData30D = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 const chartData7D = Array.from({ length: 7 }, (_, i) => ({
-  name: `Day ${i + 1}`,
+  name: `第${i + 1}天`,
   revenue: Math.floor(Math.random() * 5000) + 1000,
   cost: Math.floor(Math.random() * 3000) + 500,
 }));
@@ -160,13 +160,13 @@ export default function Marketing() {
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            {isSyncing ? "Syncing..." : "Sync"}
+            {isSyncing ? "同步中..." : "同步"}
           </button>
           <button 
             onClick={handleAddProduct}
             className="flex items-center gap-2 rounded-lg border border-slate-700 bg-[#1C2127] px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition-all active:scale-95"
           >
-            <Plus className="h-4 w-4" /> Add Product
+            <Plus className="h-4 w-4" /> 添加产品
           </button>
         </div>
       </div>
@@ -175,29 +175,29 @@ export default function Marketing() {
       <div className="grid gap-6 md:grid-cols-4">
         {[
           {
-            name: "Total Products",
+            name: "产品总数",
             value: "12",
             change: "+2",
             icon: Package,
             color: "text-green-500",
           },
           {
-            name: "Active Users",
+            name: "活跃用户",
             value: "45.2K",
             change: "+12%",
             icon: Users,
             color: "text-green-500",
           },
           {
-            name: "Total MRR",
-            value: "$12,450",
+            name: "总月收入 MRR",
+            value: "¥12,450",
             change: "+8.5%",
             icon: DollarSign,
             color: "text-green-500",
           },
           {
-            name: "Net LTV",
-            value: "$450",
+            name: "净生命价值 LTV",
+            value: "¥450",
             change: "+2.1%",
             icon: TrendingUp,
             color: "text-green-500",
@@ -232,22 +232,22 @@ export default function Marketing() {
       {/* Tabs */}
       <div className="flex border-b border-slate-800">
         <button className="flex items-center gap-2 border-b-2 border-[#137FEC] px-6 py-3 text-sm font-bold text-white">
-          <Shield className="h-4 w-4" /> Passport (Auth)
+          <Shield className="h-4 w-4" /> 身份验证
         </button>
         <button className="flex items-center gap-2 border-b-2 border-transparent px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-300 transition-colors">
-          <CreditCard className="h-4 w-4" /> Payment Hub
+          <CreditCard className="h-4 w-4" /> 支付中心
         </button>
       </div>
 
       {/* Product Table */}
       <Card className="overflow-hidden bg-[#1C2127] p-0">
         <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 border-b border-slate-800 bg-[#181C22] px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-          <div>Product Name</div>
-          <div>Status</div>
-          <div>Users</div>
-          <div>MRR</div>
-          <div>LTV</div>
-          <div className="text-right">Actions</div>
+          <div>产品名称</div>
+          <div>状态</div>
+          <div>用户数</div>
+          <div>月收入</div>
+          <div>生命价值</div>
+          <div className="text-right">操作</div>
         </div>
         <div className="divide-y divide-slate-800">
           {products.map((product) => (
@@ -275,9 +275,9 @@ export default function Marketing() {
                 <span
                   className={cn(
                     "flex w-fit items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
-                    product.status === "Live"
+                    product.status === "上线"
                       ? "bg-green-500/10 text-green-500"
-                      : product.status === "Beta"
+                      : product.status === "测试"
                       ? "bg-blue-500/10 text-blue-500"
                       : "bg-orange-500/10 text-orange-500"
                   )}
@@ -285,9 +285,9 @@ export default function Marketing() {
                   <span
                     className={cn(
                       "h-1.5 w-1.5 rounded-full animate-pulse",
-                      product.status === "Live"
+                      product.status === "上线"
                         ? "bg-green-500"
-                        : product.status === "Beta"
+                        : product.status === "测试"
                         ? "bg-blue-500"
                         : "bg-orange-500"
                     )}
@@ -314,10 +314,10 @@ export default function Marketing() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-white">
-                Consolidated Revenue & Cost
+                综合收入与成本
               </h3>
               <p className="text-sm text-slate-400">
-                Net profit across entire product matrix
+                全产品矩阵净利润走势
               </p>
             </div>
             <div className="flex gap-2 rounded-lg bg-slate-800/50 p-1">
@@ -382,11 +382,11 @@ export default function Marketing() {
           <div className="mt-4 flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-[#137FEC]" />
-              <span className="text-sm text-slate-400">Revenue</span>
+              <span className="text-sm text-slate-400">收入</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-[#10b981]" />
-              <span className="text-sm text-slate-400">Operational Cost</span>
+              <span className="text-sm text-slate-400">运营成本</span>
             </div>
           </div>
         </Card>
@@ -395,12 +395,12 @@ export default function Marketing() {
         <div className="space-y-6">
           <Card className="bg-[#1C2127] p-6">
             <h3 className="mb-6 text-lg font-bold text-white">
-              Infrastructure Health
+              基础设施状态
             </h3>
             <div className="space-y-6">
               <div>
                 <div className="mb-2 flex justify-between text-xs">
-                  <span className="text-slate-400">CPU Usage (Matrix Core)</span>
+                  <span className="text-slate-400">CPU 使用率（矩阵核心）</span>
                   <span className="text-white">42%</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
@@ -414,7 +414,7 @@ export default function Marketing() {
               </div>
               <div>
                 <div className="mb-2 flex justify-between text-xs">
-                  <span className="text-slate-400">Database Memory</span>
+                  <span className="text-slate-400">数据库内存</span>
                   <span className="text-white">68%</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
@@ -428,7 +428,7 @@ export default function Marketing() {
               </div>
               <div>
                 <div className="mb-2 flex justify-between text-xs">
-                  <span className="text-slate-400">API Latency</span>
+                  <span className="text-slate-400">API 延迟</span>
                   <span className="text-green-500">24ms</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
@@ -445,7 +445,7 @@ export default function Marketing() {
 
           <Card className="bg-gradient-to-br from-[#1C2127] to-[#181C22] p-6">
             <h3 className="mb-6 text-sm font-bold uppercase tracking-wider text-slate-500">
-              Deployments
+              自动化部署
             </h3>
             <div className="space-y-4">
               <div className="flex items-center gap-4 rounded-lg border border-slate-700 bg-slate-800/50 p-3 hover:bg-slate-800 transition-colors cursor-pointer">
@@ -453,8 +453,8 @@ export default function Marketing() {
                   <GitCommit className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">Deploy Webhook</p>
-                  <p className="text-xs text-slate-500">Last updated 2h ago</p>
+                  <p className="text-sm font-medium text-white">部署 Webhook</p>
+                  <p className="text-xs text-slate-500">2小时前已更新</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 rounded-lg border border-slate-700 bg-slate-800/50 p-3 hover:bg-slate-800 transition-colors cursor-pointer">
@@ -462,8 +462,8 @@ export default function Marketing() {
                   <Database className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">Backup DB</p>
-                  <p className="text-xs text-slate-500">Scheduled daily 00:00</p>
+                  <p className="text-sm font-medium text-white">数据库备份</p>
+                  <p className="text-xs text-slate-500">每日 00:00 自动执行</p>
                 </div>
               </div>
             </div>
