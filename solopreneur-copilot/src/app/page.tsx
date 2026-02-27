@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Card } from "@/components/ui/card";
 import {
   TrendingUp,
@@ -8,87 +9,82 @@ import {
   DollarSign,
   Zap,
   Clock,
-  CheckCircle2,
-  AlertCircle,
-  Archive,
   Play,
   Lightbulb,
   RefreshCw,
   CheckSquare,
   Square,
   ArrowRight,
+  Edit3,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 
-const stats = [
-  {
-    name: "MRR (月经常性收入)",
-    value: "¥12,500",
-    change: "+15%",
-    trend: "up",
-    description: "较上月增长 ¥1,630",
-    icon: DollarSign,
-    path: "/marketing",
-  },
-  {
-    name: "活跃用户",
-    value: "1,240",
-    change: "+5%",
-    trend: "up",
-    description: "昨日新增 12 位用户",
-    icon: Users,
-    path: "/marketing",
-  },
-  {
-    name: "净利润",
-    value: "¥8,900",
-    change: "+12%",
-    trend: "up",
-    description: "利润率 71.2%",
-    icon: TrendingUp,
-    path: "/marketing",
-  },
-];
 
-const ideas = [
-  {
-    name: "Notion 待办插件",
-    category: "SaaS / B2C",
-    date: "2 小时前",
-    score: 85,
-    status: "High Potential",
-    statusColor: "text-green-500 bg-green-500/10",
-    barColor: "bg-green-500",
-    icon: CheckCircle2,
-  },
-  {
-    name: "宠物社交 App",
-    category: "Mobile / C2C",
-    date: "昨天",
-    score: 62,
-    status: "Needs Research",
-    statusColor: "text-yellow-500 bg-yellow-500/10",
-    barColor: "bg-yellow-500",
-    icon: AlertCircle,
-  },
-  {
-    name: "二手书聚合平台",
-    category: "Marketplace",
-    date: "3 天前",
-    score: 45,
-    status: "Archived",
-    statusColor: "text-slate-400 bg-slate-400/10",
-    barColor: "bg-slate-400",
-    icon: Archive,
-  },
-];
+interface IdeaItem {
+  id: string
+  title: string
+  vcScore: number | null
+  status: string
+  createdAt: string
+}
+
+interface Metrics {
+  mrr: number
+  dau: number
+  revenue: number
+  profit: number
+  profitMargin: number
+}
 
 export default function Dashboard() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [ideas, setIdeas] = useState<IdeaItem[]>([]);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [showMetricsModal, setShowMetricsModal] = useState(false);
+  const [projects, setProjects] = useState<{id: string; name: string}[]>([]);
+  const [metricsForm, setMetricsForm] = useState({ projectId: "", mrr: "", dau: "", revenue: "", cost: "" });
+  const [savingMetrics, setSavingMetrics] = useState(false);
+
+  const fetchData = async () => {
+    const [ideasRes, metricsRes, projectsRes] = await Promise.all([
+      fetch("/api/ideas").catch(() => null),
+      fetch("/api/metrics").catch(() => null),
+      fetch("/api/projects").catch(() => null),
+    ]);
+    if (ideasRes?.ok) { const d = await ideasRes.json(); Array.isArray(d) && setIdeas(d.slice(0, 3)); }
+    if (metricsRes?.ok) { const d = await metricsRes.json(); setMetrics(d); }
+    if (projectsRes?.ok) { const d = await projectsRes.json(); Array.isArray(d) && setProjects(d.map((p: {id: string; name: string}) => ({ id: p.id, name: p.name }))); }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const saveMetrics = async () => {
+    if (!metricsForm.projectId) { toast.error("请选择项目"); return; }
+    setSavingMetrics(true);
+    try {
+      await fetch("/api/metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: metricsForm.projectId,
+          mrr: Number(metricsForm.mrr) || 0,
+          dau: Number(metricsForm.dau) || 0,
+          revenue: Number(metricsForm.revenue) || 0,
+          cost: Number(metricsForm.cost) || 0,
+        }),
+      });
+      toast.success("指标已保存");
+      setShowMetricsModal(false);
+      fetchData();
+    } catch { toast.error("保存失败"); }
+    finally { setSavingMetrics(false); }
+  };
   const [tasks, setTasks] = useState([
     { id: 1, text: "完成核心 API 对接", completed: true },
     { id: 2, text: "前端编辑器组件开发", completed: false },
@@ -97,10 +93,7 @@ export default function Dashboard() {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast.success("数据已更新");
-    }, 1500);
+    fetchData().finally(() => { setIsRefreshing(false); toast.success("数据已更新"); });
   };
 
   const handleEnterEnv = () => {
@@ -133,7 +126,8 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-white">仪表盘概览</h1>
           <p className="mt-2 text-slate-400">
-            欢迎回来，这是你构建帝国的第 <span className="font-bold text-[#137FEC]">142</span> 天。
+            欢迎回来 {session?.user?.name ?? ""}，这是你构建帝国的第{" "}
+            <span className="font-bold text-[#137FEC]">{session?.user?.dayStreak ?? 1}</span> 天。
           </p>
         </div>
         <button 
@@ -148,35 +142,55 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-3">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            onClick={() => router.push(stat.path)}
-          >
+        {[
+          {
+            name: "MRR (月经常性收入)",
+            value: metrics ? `¥${metrics.mrr.toLocaleString()}` : "–",
+            sub: metrics?.mrr ? "已录入真实数据" : "暂无数据，点击录入",
+            icon: DollarSign,
+            path: "/marketing",
+          },
+          {
+            name: "活跃用户 (DAU)",
+            value: metrics ? metrics.dau.toLocaleString() : "–",
+            sub: metrics?.dau ? "今日活跃用户" : "暂无数据，点击录入",
+            icon: Users,
+            path: "/marketing",
+          },
+          {
+            name: "净利润",
+            value: metrics ? `¥${metrics.profit.toLocaleString()}` : "–",
+            sub: metrics?.profitMargin ? `利润率 ${metrics.profitMargin}%` : "暂无数据，点击录入",
+            icon: TrendingUp,
+            path: "/marketing",
+          },
+        ].map((stat, index) => (
+          <motion.div key={stat.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}
+            onClick={() => router.push(stat.path)}>
             <Card className="relative overflow-hidden hover:border-[#137FEC]/50 transition-colors cursor-pointer group">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-400 group-hover:text-slate-300 transition-colors">{stat.name}</p>
                   <div className="mt-2 flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-white">
-                      {stat.value}
-                    </span>
-                    <span className="rounded bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-500">
-                      {stat.change}
-                    </span>
+                    <span className="text-3xl font-bold text-white">{stat.value}</span>
                   </div>
                 </div>
-                <div className="rounded-lg bg-slate-800/50 p-2 group-hover:bg-[#137FEC]/10 group-hover:text-[#137FEC] transition-colors">
+                <div className="rounded-lg bg-slate-800/50 p-2 group-hover:bg-[#137FEC]/10 transition-colors">
                   <stat.icon className="h-5 w-5 text-slate-400 group-hover:text-[#137FEC] transition-colors" />
                 </div>
               </div>
-              <p className="mt-4 text-xs text-slate-500">{stat.description}</p>
+              <p className="mt-4 text-xs text-slate-500">{stat.sub}</p>
             </Card>
           </motion.div>
         ))}
+      </div>
+
+      {/* 录入指标入口 */}
+      <div className="flex justify-end">
+        <button onClick={() => setShowMetricsModal(true)}
+          className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+          <Edit3 className="h-4 w-4" /> 录入今日指标
+        </button>
       </div>
 
       {/* Current Focus */}
@@ -294,53 +308,53 @@ export default function Dashboard() {
         </div>
 
         <Card className="overflow-hidden p-0">
-          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 border-b border-slate-800 bg-slate-900/50 px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 border-b border-slate-800 bg-slate-900/50 px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
             <div>创意名称</div>
-            <div>市场赛道</div>
             <div>验证日期</div>
             <div>AI 评分</div>
             <div className="text-right">状态</div>
           </div>
           <div className="divide-y divide-slate-800">
-            {ideas.map((idea) => (
-              <div
-                key={idea.name}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 hover:bg-slate-800/50 transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-800 group-hover:bg-slate-700 transition-colors">
-                    <idea.icon className="h-5 w-5 text-slate-400 group-hover:text-white transition-colors" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white">{idea.name}</p>
-                    <p className="text-xs text-slate-500">生产力工具</p>
-                  </div>
-                </div>
-                <div className="text-sm text-slate-400">{idea.category}</div>
-                <div className="text-sm text-slate-400">{idea.date}</div>
-                <div className="flex items-center gap-3">
-                  <span className={cn("text-sm font-bold", idea.status === "High Potential" ? "text-green-500" : idea.status === "Needs Research" ? "text-yellow-500" : "text-red-500")}>
-                    {idea.score}
-                  </span>
-                  <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-700">
-                    <div
-                      className={cn("h-full", idea.barColor)}
-                      style={{ width: `${idea.score}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <span
-                    className={cn(
-                      "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      idea.statusColor
-                    )}
-                  >
-                    {idea.status === "High Potential" ? "高潜力" : idea.status === "Needs Research" ? "需调研" : "已归档"}
-                  </span>
-                </div>
+            {ideas.length === 0 ? (
+              <div className="flex items-center justify-center py-8 text-sm text-slate-500">
+                还没有创意记录，去验证你的第一个想法吧
               </div>
-            ))}
+            ) : ideas.map((idea) => {
+              const score = idea.vcScore
+              const barColor = score === null ? "bg-slate-600" : score >= 70 ? "bg-green-500" : score >= 50 ? "bg-yellow-500" : "bg-red-500"
+              const scoreColor = score === null ? "text-slate-400" : score >= 70 ? "text-green-500" : score >= 50 ? "text-yellow-500" : "text-red-500"
+              const statusLabel = idea.status === "approved" ? "高潜力" : idea.status === "rejected" ? "已粉碎" : "待验证"
+              const statusColor = idea.status === "approved" ? "text-green-500 bg-green-500/10" : idea.status === "rejected" ? "text-red-400 bg-red-500/10" : "text-slate-400 bg-slate-700/50"
+              return (
+                <div key={idea.id}
+                  onClick={() => router.push("/idea-validator")}
+                  className="grid grid-cols-[2fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-800 group-hover:bg-slate-700 transition-colors">
+                      <Lightbulb className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <p className="font-bold text-white truncate">{idea.title}</p>
+                  </div>
+                  <div className="text-sm text-slate-400">
+                    {new Date(idea.createdAt).toLocaleDateString("zh-CN", { month: "short", day: "numeric" })}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={cn("text-sm font-bold", scoreColor)}>
+                      {score ?? "–"}
+                    </span>
+                    <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-700">
+                      <div className={cn("h-full", barColor)} style={{ width: `${score ?? 0}%` }} />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", statusColor)}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
           <div className="border-t border-slate-800 p-4">
             <button 
@@ -353,6 +367,59 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+      {/* 录入指标弹窗 */}
+      <AnimatePresence>
+        {showMetricsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowMetricsModal(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl border border-slate-700 bg-[#101922] p-6 shadow-2xl">
+              <div className="mb-5 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">录入今日指标</h3>
+                <button onClick={() => setShowMetricsModal(false)}><X className="h-5 w-5 text-slate-500 hover:text-white" /></button>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-500">选择项目 *</label>
+                  {projects.length === 0 ? (
+                    <p className="text-sm text-slate-500">还没有项目，请先在项目管理页面创建</p>
+                  ) : (
+                    <select value={metricsForm.projectId} onChange={e => setMetricsForm(p => ({ ...p, projectId: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:outline-none">
+                      <option value="">请选择...</option>
+                      {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { key: "mrr", label: "MRR 月收入 (¥)", placeholder: "例: 1200" },
+                    { key: "dau", label: "DAU 日活用户", placeholder: "例: 340" },
+                    { key: "revenue", label: "今日收入 (¥)", placeholder: "例: 50" },
+                    { key: "cost", label: "今日成本 (¥)", placeholder: "例: 20" },
+                  ].map(({ key, label, placeholder }) => (
+                    <div key={key} className="space-y-1">
+                      <label className="text-xs text-slate-500">{label}</label>
+                      <input
+                        type="number" min="0" placeholder={placeholder}
+                        value={metricsForm[key as keyof typeof metricsForm]}
+                        onChange={e => setMetricsForm(p => ({ ...p, [key]: e.target.value }))}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#137FEC]/50" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-5 flex gap-3">
+                <button onClick={() => setShowMetricsModal(false)} className="flex-1 rounded-lg border border-slate-700 py-2.5 text-sm text-slate-400 hover:bg-slate-800">取消</button>
+                <button onClick={saveMetrics} disabled={savingMetrics || !metricsForm.projectId}
+                  className="flex-1 rounded-lg bg-[#137FEC] py-2.5 text-sm font-bold text-white hover:bg-blue-600 disabled:opacity-50">
+                  {savingMetrics ? "保存中..." : "保存"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

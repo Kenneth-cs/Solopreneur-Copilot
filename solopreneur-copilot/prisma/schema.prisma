@@ -133,13 +133,15 @@ model DailyLog {
   id          String   @id @default(cuid())
   date        DateTime @default(now())
 
-  // 灵魂六问答案
-  q1          String?  @db.Text   // 今天进账了吗？
-  q2          String?  @db.Text   // 做了什么推广动作？
-  q3          String?  @db.Text   // 代码的商业价值是什么？
-  q4          String?  @db.Text   // 哪件事离赚钱最近？
-  q5          String?  @db.Text   // 遇到了什么卡点？
-  q6          String?  @db.Text   // 明天如何带来收入？
+  // 灵魂八问答案
+  q1          String?  @db.Text   // 哪件事离赚钱最近？今天做了吗？
+  q2          String?  @db.Text   // 今天赚钱了吗？
+  q3          String?  @db.Text   // 今天核心输出的商业价值是什么？
+  q4          String?  @db.Text   // 今天遇到了什么卡点？
+  q5          String?  @db.Text   // 今天精力状态如何？
+  q6          String?  @db.Text   // 明天最重要的一件事？
+  q7          String?  @db.Text   // 如果今天重来，会改变什么？
+  q8          String?  @db.Text   // 明天如何带来收入？
 
   // Git 数据
   commitLogs  String?  @db.Text   // 当日 Commit Message 列表

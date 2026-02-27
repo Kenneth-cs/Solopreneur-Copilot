@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `DailyLog` ADD COLUMN `q7` TEXT NULL,
+    ADD COLUMN `q8` TEXT NULL;

@@ -78,7 +78,7 @@ export function Sidebar() {
           <div className="mb-2 flex items-center gap-2">
             <Zap className="h-4 w-4 text-[#137FEC]" />
             <span className="text-xs font-bold text-[#137FEC]">
-              {session?.user ? "Free 计划" : "Pro 计划"}
+              {session?.user?.plan === "pro" ? "Pro 计划" : "Free 计划"}
             </span>
           </div>
           <p className="mb-3 text-xs text-slate-400">
@@ -106,7 +106,9 @@ export function Sidebar() {
             <span className="truncate text-xs font-medium text-white">
               {user?.name ?? user?.email ?? "未登录"}
             </span>
-            <span className="text-[10px] text-slate-500">Free Plan</span>
+            <span className="text-[10px] text-slate-500">
+              {session?.user?.plan === "pro" ? "Pro Plan" : "Free Plan"}
+            </span>
           </div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <Link href="/settings">

@@ -51,15 +51,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
+      }
+      // 每次 session 更新或首次登录时，从 DB 同步最新 plan/dayStreak
+      if (token.id && (trigger === "signIn" || trigger === "update" || !token.plan)) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { plan: true, dayStreak: true },
+        })
+        if (dbUser) {
+          token.plan = dbUser.plan
+          token.dayStreak = dbUser.dayStreak
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string
+        session.user.plan = (token.plan as string) ?? "free"
+        session.user.dayStreak = (token.dayStreak as number) ?? 0
       }
       return session
     },
