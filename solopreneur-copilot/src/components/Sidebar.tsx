@@ -90,7 +90,7 @@ export function Sidebar() {
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800 transition-colors group">
+        <Link href="/settings" className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-800 transition-colors group">
           {user?.image ? (
             <img
               src={user.image}
@@ -111,14 +111,12 @@ export function Sidebar() {
             </span>
           </div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Link href="/settings">
-              <Settings className="h-4 w-4 text-slate-500 hover:text-white transition-colors" />
-            </Link>
-            <button onClick={handleSignOut} title="退出登录">
+            <Settings className="h-4 w-4 text-slate-500 group-hover:text-white transition-colors" />
+            <button onClick={e => { e.preventDefault(); handleSignOut() }} title="退出登录">
               <LogOut className="h-4 w-4 text-slate-500 hover:text-red-400 transition-colors" />
             </button>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   )
